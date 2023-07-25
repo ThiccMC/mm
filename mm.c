@@ -5,15 +5,15 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 32
 #define SOCKET_PATH "./lo.sock"
-#define STATIC_BUFFER_SIZE 1024
+#define STATIC_BUFFER_SIZE 128
 
 int main() {
     int sv, cl[MAX_CLIENTS];
     struct sockaddr_un addr;
     char buf[STATIC_BUFFER_SIZE];
-    int num_clients = 0;
+    int cln = 0;
     // create sock
     sv = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sv == -1) {
@@ -42,7 +42,7 @@ int main() {
         // wtf
         FD_ZERO(&read_fds);
         FD_SET(sv, &read_fds);
-        for (int i = 0; i < num_clients; i++) {
+        for (int i = 0; i < cln; i++) {
             FD_SET(cl[i], &read_fds);
             if (cl[i] > max_fd) {
                 max_fd = cl[i];
@@ -63,22 +63,22 @@ int main() {
                 continue;
             }
             printf("New connection\n");
-            cl[num_clients++] = client_fd;
+            cl[cln++] = client_fd;
         }
 
         // consume
-        for (int i = 0; i < num_clients; i++) {
+        for (int i = 0; i < cln; i++) {
             if (FD_ISSET(cl[i], &read_fds)) {
                 ssize_t num_bytes = read(cl[i], buf, sizeof(buf));
                 if (num_bytes <= 0) {
                     printf("Client disconnected\n");
                     close(cl[i]);
-                    memmove(&cl[i], &cl[i + 1], num_clients - i - 1);
-                    num_clients--;
+                    memmove(&cl[i], &cl[i + 1], cln - i - 1);
+                    cln--;
                     i--;
                 } else {
                     // throw
-                    for (int j = 0; j < num_clients; j++) {
+                    for (int j = 0; j < cln; j++) {
                         if (j != i) {
                             write(cl[j], buf, num_bytes);
                         }
