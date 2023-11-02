@@ -2,6 +2,9 @@
 
 lazy based, convenient webhook consumer that trigger command through tcp thing
 
+> [!NOTE]
+> **Just in case you want to scale it to the moon, or internal only use with stack that will help you to find a job, use [kcat](https://github.com/edenhill/kcat) with Apache Kafka**
+
 ## Requirements
 
 - `ncat`
